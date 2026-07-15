@@ -169,7 +169,7 @@ export default function App() {
                 <span className="cart-bar-total">R$ {total.toFixed(2)}</span>
               </div>
               <a
-                href={`https://wa.me/5581988267149?text=Olá!%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
+                href={`https://wa.me/5581986776362?text=Olá!%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
                   .map(
                     (item) =>
                       `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
