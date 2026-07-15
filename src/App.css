@@ -1,86 +1,493 @@
-body {
-  background: #121212;
-  color: white;
-  font-family: sans-serif;
-  margin: 0;
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--massa);
+  position: relative;
 }
 
-.container {
-  max-width: 500px;
-  margin: auto;
-  padding: 20px;
-}
-
-.title {
+/* ---------- HERO ---------- */
+.hero {
+  background: linear-gradient(160deg, var(--molho) 0%, var(--molho-escuro) 100%);
+  padding: 2.2rem 1.5rem 2.6rem;
+  position: relative;
   text-align: center;
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 25px;
-  color: #ffcc00;
+  color: var(--branco-muzzarela);
 }
 
-.menu {
-  display: grid;
-  gap: 15px;
+.hero-eyebrow {
+  display: inline-block;
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  margin-bottom: 0.8rem;
 }
 
-.card {
-  background: #1f1f1f;
-  padding: 15px;
-  border-radius: 8px;
+.hero-title {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 800;
+  font-size: 2.1rem;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
 }
 
-.card h3 {
+.hero-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.92;
   margin: 0;
+  font-weight: 600;
 }
 
-.card p {
-  margin: 5px 0 15px;
-  color: #ffcc00;
-  font-weight: bold;
+.crust-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 26px;
+  background: var(--massa);
+  -webkit-mask-image: radial-gradient(circle at 13px 0, transparent 13px, black 14px);
+  mask-image: radial-gradient(circle at 13px 0, transparent 13px, black 14px);
+  -webkit-mask-size: 26px 26px;
+  mask-size: 26px 26px;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
 }
 
-button {
-  width: 100%;
-  background: #ffcc00;
-  padding: 10px;
+/* ---------- MENU ---------- */
+.menu-section {
+  padding: 1.6rem 1.25rem 0.5rem;
+}
+
+.section-label {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--carvao);
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aba-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+
+.aba-btn {
+  flex: 1;
+  border: 2px solid transparent;
+  background: var(--branco-muzzarela);
+  color: var(--carvao);
+  font-weight: 800;
+  font-size: 0.92rem;
+  padding: 0.65rem 0.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: var(--sombra);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.aba-btn:active {
+  transform: scale(0.97);
+}
+
+.aba-ativa {
+  background: var(--molho);
+  color: var(--branco-muzzarela);
+}
+
+.loading-note {
+  font-weight: 600;
+  color: var(--molho-escuro);
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+@media (min-width: 420px) {
+  .menu-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pizza-card {
+  background: var(--branco-muzzarela);
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pizza-card:active {
+  transform: scale(0.98);
+}
+
+.pizza-card-top {
+  height: 8px;
+  background: var(--accent, var(--queijo));
+}
+
+.pizza-card-body {
+  padding: 1rem 1.1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.pizza-emoji {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.pizza-name {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--carvao);
+}
+
+.pizza-price {
+  align-self: flex-start;
+  background: var(--queijo-claro);
+  color: var(--molho-escuro);
+  font-weight: 800;
+  font-size: 0.92rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+}
+
+.add-button {
+  margin-top: 0.3rem;
   border: none;
-  border-radius: 6px;
-  color: black;
-  font-weight: bold;
-  font-size: 16px;
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  background: var(--molho);
+  color: var(--branco-muzzarela);
+  font-weight: 800;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.cart-title {
-  margin-top: 30px;
-  margin-bottom: 10px;
+.add-button:hover {
+  background: var(--molho-escuro);
 }
 
-.cart-item {
-  background: #1f1f1f;
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 10px;
+.add-button:active {
+  transform: scale(0.96);
+}
+
+.empty-menu {
+  text-align: center;
+  color: #8a7a6a;
+  font-weight: 600;
+  padding: 2rem 1rem;
+  background: var(--branco-muzzarela);
+  border-radius: 16px;
+}
+
+/* ---------- COMANDA (carrinho) ---------- */
+.comanda-section {
+  padding: 1.8rem 1.25rem 0.5rem;
+}
+
+.comanda {
+  background: var(--branco-muzzarela);
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+  padding: 1.1rem 1.2rem;
+}
+
+.comanda-empty {
+  text-align: center;
+  color: #8a7a6a;
+  font-weight: 600;
+  padding: 1rem 0;
+}
+
+.comanda-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed #e9dfce;
+}
+
+.comanda-item:last-of-type {
+  border-bottom: none;
+}
+
+.comanda-item-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--carvao);
+}
+
+.comanda-item-price {
+  font-weight: 800;
+  color: var(--manjericao-escuro);
+  white-space: nowrap;
+}
+
+.remove-btn {
+  border: none;
+  background: #fbe4e4;
+  color: var(--molho-escuro);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.comanda-total-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 2px solid var(--carvao);
 }
 
-.total {
-  margin-top: 20px;
-  font-size: 22px;
-  color: #ffcc00;
+.comanda-total-label {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.comanda-total-value {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--molho-escuro);
+}
+
+/* ---------- BARRA FIXA / CHECKOUT ---------- */
+.cart-bar {
+  margin-top: 1rem;
+  width: 100%;
+  background: var(--carvao);
+  color: var(--branco-muzzarela);
+  border-radius: 16px;
+  padding: 0.7rem 0.8rem 0.7rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  box-shadow: 0 8px 20px rgba(43, 33, 24, 0.25);
+  animation: subir 0.2s ease;
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cart-bar-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.cart-bar-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--queijo-claro);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cart-bar-total {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
 }
 
 .whatsapp-button {
-  background: #25d366;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-size: 18px;
-  font-weight: bold;
+  background: var(--manjericao);
+  color: var(--branco-muzzarela);
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  font-weight: 800;
+  font-size: 0.88rem;
   text-decoration: none;
-  display: block;
-  margin: 20px 0;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.whatsapp-button:hover {
+  background: var(--manjericao-escuro);
+}
+
+/* ---------- RODAPÉ ---------- */
+.footer-note {
   text-align: center;
+  padding: 1.6rem 1rem 1rem;
+}
+
+.admin-link {
+  font-size: 0.78rem;
+  color: #b3a693;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.admin-link:hover {
+  color: var(--molho);
+}
+
+/* ---------- ADMIN ---------- */
+.admin-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--massa);
+  padding: 2rem 1.25rem 3rem;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+}
+
+.admin-title {
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  margin: 0;
+  color: var(--carvao);
+}
+
+.logout-btn,
+.back-link {
+  border: none;
+  background: var(--branco-muzzarela);
+  color: var(--molho-escuro);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--sombra);
+}
+
+.admin-card {
+  background: var(--branco-muzzarela);
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+  padding: 1.3rem;
+  margin-bottom: 1.2rem;
+}
+
+.admin-card h2 {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 1.05rem;
+  margin: 0 0 0.9rem;
+  color: var(--carvao);
+}
+
+.admin-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.admin-login input,
+.admin-login select {
+  border: 2px solid #eee0cb;
+  background: var(--massa);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--carvao);
+}
+
+.admin-login input:focus,
+.admin-login select:focus {
+  outline: 3px solid var(--queijo);
+  outline-offset: 1px;
+  border-color: var(--queijo);
+}
+
+.admin-login button {
+  border: none;
+  background: var(--molho);
+  color: var(--branco-muzzarela);
+  font-weight: 800;
+  padding: 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.admin-login button:hover {
+  background: var(--molho-escuro);
+}
+
+.admin-produto-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed #e9dfce;
+}
+
+.admin-produto-row:last-child {
+  border-bottom: none;
+}
+
+.admin-produto-nome {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.admin-produto-preco {
+  width: 84px;
+  border: 2px solid #eee0cb;
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.admin-erro {
+  color: var(--molho-escuro);
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-top: 0.6rem;
+}
+
+.admin-back-row {
+  text-align: center;
+  margin-top: 1.4rem;
 }
