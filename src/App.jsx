@@ -99,6 +99,9 @@ export default function App() {
       return;
     }
 
+    // Abre a aba em branco JÁ no clique (senão o navegador bloqueia depois do await)
+    const novaAba = window.open("", "_blank");
+
     setEnviando(true);
     let idPedido = null;
     try {
@@ -132,7 +135,12 @@ export default function App() {
         : ""
     }`;
 
-    window.open(linkWhats, "_blank");
+    if (novaAba) {
+      novaAba.location.href = linkWhats;
+    } else {
+      // se o navegador bloqueou mesmo assim, tenta de novo como reforço
+      window.open(linkWhats, "_blank");
+    }
   }
 
   return (
