@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { buscarStatusPedido } from './api';
 
 const ETAPAS = [
@@ -8,9 +8,31 @@ const ETAPAS = [
   { chave: 'entregue', label: 'Entregue', emoji: '🎉' },
 ];
 
+function tocarAlerta() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const ganho = ctx.createGain();
+    osc.connect(ganho);
+    ganho.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1175, ctx.currentTime + 0.15);
+    ganho.gain.setValueAtTime(0.18, ctx.currentTime);
+    ganho.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch (e) {
+    // navegador bloqueou áudio automático, sem problema
+  }
+  if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+}
+
 export default function PedidoStatus({ id }) {
   const [pedido, setPedido] = useState(null);
   const [erro, setErro] = useState('');
+  const statusAnterior = useRef(null);
 
   useEffect(() => {
     let ativo = true;
@@ -18,7 +40,12 @@ export default function PedidoStatus({ id }) {
     function carregar() {
       buscarStatusPedido(id)
         .then((dados) => {
-          if (ativo) setPedido(dados);
+          if (!ativo) return;
+          if (statusAnterior.current && statusAnterior.current !== dados.status) {
+            tocarAlerta();
+          }
+          statusAnterior.current = dados.status;
+          setPedido(dados);
         })
         .catch(() => {
           if (ativo) setErro('Pedido não encontrado.');
@@ -95,7 +122,7 @@ export default function PedidoStatus({ id }) {
         </div>
 
         <p style={{ textAlign: 'center', color: '#8a7a6a', fontSize: '0.8rem', marginTop: '1rem' }}>
-          Essa página atualiza sozinha a cada 10 segundos 🔄
+          🔔 Deixa essa página aberta — ela avisa com som quando o status mudar
         </p>
       </section>
 

@@ -5,7 +5,7 @@ import AdminPage from "./AdminPage";
 import PedidoStatus from "./PedidoStatus";
 
 const CORES_ACCENT = ["#ffb627", "#2f7a3c", "#e63946", "#ffd166"];
-const NUMERO_LOJA = "5581986776362"; // <-- troque aqui pelo número da loja (com DDI+DDD)
+const NUMERO_LOJA = "5581986776362"; // <-- número da loja (com DDI+DDD)
 
 function emojiDaPizza(nome = "") {
   const n = nome.toLowerCase();
@@ -99,6 +99,26 @@ export default function App() {
       return;
     }
 
+    setEnviando(true);
+    let idPedido = null;
+    try {
+      const resultado = await registrarPedido({
+        itens: cart.map((item) => ({ nome: item.name, preco: item.price, quantidade: item.quantity })),
+        total,
+        cliente: { nome: nomeCliente.trim(), telefone: telefoneCliente.trim() },
+      });
+      idPedido = resultado._id;
+      setPedidoFeitoId(idPedido);
+    } catch (e) {
+      console.error("Não foi possível registrar a venda:", e);
+    } finally {
+      setEnviando(false);
+    }
+
+    const linkAcompanhamento = idPedido
+      ? `${window.location.origin}${window.location.pathname}#pedido/${idPedido}`
+      : "";
+
     const linkWhats = `https://wa.me/${NUMERO_LOJA}?text=Olá!%20Meu%20nome%20é%20${encodeURIComponent(
       nomeCliente
     )}.%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
@@ -106,21 +126,11 @@ export default function App() {
         (item) =>
           `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
       )
-      .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}`;
-
-    setEnviando(true);
-    try {
-      const resultado = await registrarPedido({
-        itens: cart.map((item) => ({ nome: item.name, preco: item.price, quantidade: item.quantity })),
-        total,
-        cliente: { nome: nomeCliente.trim(), telefone: telefoneCliente.trim() },
-      });
-      setPedidoFeitoId(resultado._id);
-    } catch (e) {
-      console.error("Não foi possível registrar a venda:", e);
-    } finally {
-      setEnviando(false);
-    }
+      .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}${
+      linkAcompanhamento
+        ? `%0A%0A📍%20Acompanhe%20seu%20pedido:%20${encodeURIComponent(linkAcompanhamento)}`
+        : ""
+    }`;
 
     window.open(linkWhats, "_blank");
   }
