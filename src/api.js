@@ -47,3 +47,21 @@ export async function excluirProduto(token, id) {
   if (!res.ok) throw new Error('Erro ao excluir produto');
   return res.json();
 }
+
+export async function registrarPedido(pedido) {
+  const res = await fetch(`${API_URL}/api/pedidos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pedido),
+  });
+  if (!res.ok) throw new Error('Erro ao registrar pedido');
+  return res.json();
+}
+
+export async function buscarResumoVendas(token) {
+  const res = await fetch(`${API_URL}/api/pedidos/resumo`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Erro ao buscar resumo de vendas');
+  return res.json();
+}

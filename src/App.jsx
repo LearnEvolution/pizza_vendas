@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import { buscarProdutos } from "./api";
+import { buscarProdutos, registrarPedido } from "./api";
 import AdminPage from "./AdminPage";
 
 const CORES_ACCENT = ["#ffb627", "#2f7a3c", "#e63946", "#ffd166"];
@@ -76,6 +76,27 @@ export default function App() {
 
   function removeFromCart(id) {
     setCart(cart.filter((item) => item.id !== id));
+  }
+
+  async function handleFinalizar() {
+    const linkWhats = `https://wa.me/5581986776362?text=Olá!%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
+      .map(
+        (item) =>
+          `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
+      )
+      .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}`;
+
+    try {
+      await registrarPedido({
+        itens: cart.map((item) => ({ nome: item.name, preco: item.price, quantidade: item.quantity })),
+        total,
+      });
+    } catch (e) {
+      // Mesmo se o registro de venda falhar, não trava o pedido do cliente
+      console.error("Não foi possível registrar a venda:", e);
+    }
+
+    window.open(linkWhats, "_blank");
   }
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -168,19 +189,9 @@ export default function App() {
                 <span className="cart-bar-count">{totalItens} {totalItens === 1 ? "item" : "itens"}</span>
                 <span className="cart-bar-total">R$ {total.toFixed(2)}</span>
               </div>
-              <a
-                href={`https://wa.me/5581986776362?text=Olá!%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
-                  .map(
-                    (item) =>
-                      `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
-                  )
-                  .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="whatsapp-button"
-              >
+              <button onClick={handleFinalizar} className="whatsapp-button">
                 📲 Finalizar
-              </a>
+              </button>
             </div>
           )}
         </div>

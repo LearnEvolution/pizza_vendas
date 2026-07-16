@@ -1,15 +1,26 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const produtosRoutes = require('./routes/produtos');
 const authRoutes = require('./routes/auth');
+const pedidosRoutes = require('./routes/pedidos');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.use(helmet());
+
+// Em produção, defina ALLOWED_ORIGIN no .env com o endereço do seu site
+// (ex: https://kingpizzas.netlify.app). Em desenvolvimento local, libera tudo.
+const origensPermitidas = process.env.ALLOWED_ORIGIN
+  ? process.env.ALLOWED_ORIGIN.split(',').map((o) => o.trim())
+  : true;
+
+app.use(cors({ origin: origensPermitidas }));
+app.use(express.json({ limit: '100kb' }));
 
 app.use('/api/produtos', produtosRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/pedidos', pedidosRoutes);
 
 app.get('/', (req, res) => res.send('API Pizza Vendas rodando'));
 
