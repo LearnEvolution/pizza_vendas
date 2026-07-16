@@ -14,10 +14,38 @@ const PROXIMA_ACAO = {
   pronto: 'Marcar como entregue',
 };
 
+function escapeCSV(texto) {
+  const valor = String(texto ?? '');
+  if (valor.includes(';') || valor.includes('"') || valor.includes('\n')) {
+    return `"${valor.replace(/"/g, '""')}"`;
+  }
+  return valor;
+}
+
+function gerarCSV(pedidos) {
+  const cabecalho = ['Data', 'Hora', 'Cliente', 'Telefone', 'Itens', 'Total', 'Status', 'Observações'];
+  const linhas = pedidos.map((p) => {
+    const data = new Date(p.criadoEm);
+    const itensTexto = p.itens.map((i) => `${i.quantidade}x ${i.nome}`).join(' | ');
+    return [
+      data.toLocaleDateString('pt-BR'),
+      data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      escapeCSV(p.cliente?.nome),
+      escapeCSV(p.cliente?.telefone),
+      escapeCSV(itensTexto),
+      p.total.toFixed(2).replace('.', ','),
+      LABEL[p.status] || p.status,
+      escapeCSV(p.observacoes),
+    ].join(';');
+  });
+  return [cabecalho.join(';'), ...linhas].join('\r\n');
+}
+
 export default function AdminPedidos({ token }) {
   const [pedidos, setPedidos] = useState([]);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(true);
+  const [exportando, setExportando] = useState(false);
 
   useEffect(() => {
     carregar();
@@ -50,12 +78,37 @@ export default function AdminPedidos({ token }) {
     return `https://wa.me/55${numero}`;
   }
 
+  async function exportarCSV() {
+    setExportando(true);
+    try {
+      const todos = await buscarPedidos(token, 1000);
+      const csv = '\ufeff' + gerarCSV(todos);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vendas-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setErro('Erro ao exportar vendas');
+    } finally {
+      setExportando(false);
+    }
+  }
+
   if (carregando) {
     return <p style={{ color: '#8a7a6a', fontWeight: 600 }}>Carregando pedidos...</p>;
   }
 
   return (
     <>
+      <button className="exportar-btn" onClick={exportarCSV} disabled={exportando}>
+        {exportando ? 'Gerando arquivo...' : '📥 Exportar vendas (CSV/Excel)'}
+      </button>
+
       {erro && <p className="admin-erro">{erro}</p>}
       {pedidos.length === 0 && (
         <div className="admin-card">
@@ -81,6 +134,10 @@ export default function AdminPedidos({ token }) {
               </span>
             ))}
           </div>
+
+          {pedido.observacoes && (
+            <p className="pedido-obs">📝 {pedido.observacoes}</p>
+          )}
 
           <div className="pedido-rodape">
             <span className="pedido-total">R$ {pedido.total.toFixed(2)}</span>

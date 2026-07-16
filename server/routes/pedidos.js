@@ -1,65 +1,105 @@
 const express = require('express');
 const { ObjectId } = require('mongodb');
+const rateLimit = require('express-rate-limit');
 const { conectar } = require('../lib/db');
 const authAdmin = require('../middleware/authAdmin');
 
 const router = express.Router();
 
 const STATUS_VALIDOS = ['recebido', 'preparando', 'pronto', 'entregue'];
-const PROXIMO_STATUS = {
-  recebido: 'preparando',
-  preparando: 'pronto',
-  pronto: 'entregue',
-};
+
+// No máximo 15 pedidos por IP a cada 10 minutos (evita spam/flood no financeiro)
+const limitePedidos = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 15,
+  message: { erro: 'Muitos pedidos em pouco tempo. Aguarde um pouco e tente de novo.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Público - registra um pedido no momento em que o cliente finaliza no WhatsApp
-router.post('/', async (req, res) => {
-  const { itens, total, cliente } = req.body;
+router.post('/', limitePedidos, async (req, res) => {
+  const { itens, cliente } = req.body;
 
-  if (!Array.isArray(itens) || itens.length === 0 || typeof total !== 'number' || total <= 0) {
+  if (!Array.isArray(itens) || itens.length === 0 || itens.length > 30) {
     return res.status(400).json({ erro: 'Pedido inválido' });
   }
-  const itensValidos = itens.every(
+  const itensFormatoValido = itens.every(
     (i) =>
       typeof i.nome === 'string' &&
       i.nome.trim() &&
-      typeof i.preco === 'number' &&
-      i.preco >= 0 &&
       typeof i.quantidade === 'number' &&
-      i.quantidade > 0
+      Number.isInteger(i.quantidade) &&
+      i.quantidade > 0 &&
+      i.quantidade <= 50
   );
-  if (!itensValidos) {
+  if (!itensFormatoValido) {
     return res.status(400).json({ erro: 'Itens do pedido inválidos' });
   }
   if (
     !cliente ||
     typeof cliente.nome !== 'string' ||
     !cliente.nome.trim() ||
+    cliente.nome.trim().length > 100 ||
     typeof cliente.telefone !== 'string' ||
-    !cliente.telefone.trim()
+    !cliente.telefone.trim() ||
+    cliente.telefone.trim().length > 30
   ) {
     return res.status(400).json({ erro: 'Nome e telefone do cliente são obrigatórios' });
   }
 
+  let observacoes = '';
+  if (req.body.observacoes !== undefined) {
+    if (typeof req.body.observacoes !== 'string' || req.body.observacoes.length > 300) {
+      return res.status(400).json({ erro: 'Observação inválida' });
+    }
+    observacoes = req.body.observacoes.trim();
+  }
+
+  // Importante: NUNCA confia no preço que vem do navegador do cliente.
+  // Busca o preço real de cada item no cardápio atual e recalcula tudo aqui no servidor.
   const db = await conectar();
+  const produtosCardapio = await db.collection('produtos').find({}).toArray();
+
+  const itensConferidos = [];
+  for (const item of itens) {
+    const produtoReal = produtosCardapio.find(
+      (p) => p.nome.toLowerCase() === item.nome.trim().toLowerCase()
+    );
+    if (!produtoReal) {
+      return res.status(400).json({ erro: `Item "${item.nome}" não existe mais no cardápio` });
+    }
+    itensConferidos.push({
+      nome: produtoReal.nome,
+      preco: produtoReal.preco,
+      quantidade: item.quantidade,
+    });
+  }
+  const totalReal = itensConferidos.reduce((acc, i) => acc + i.preco * i.quantidade, 0);
+
   const resultado = await db.collection('pedidos').insertOne({
-    itens,
-    total,
+    itens: itensConferidos,
+    total: totalReal,
     cliente: { nome: cliente.nome.trim(), telefone: cliente.telefone.trim() },
+    observacoes,
     status: 'recebido',
     criadoEm: new Date(),
   });
-  res.status(201).json({ _id: resultado.insertedId, status: 'recebido' });
+  res.status(201).json({ _id: resultado.insertedId, status: 'recebido', total: totalReal });
 });
 
 // Protegido - lista os pedidos recentes pro painel do dono
 router.get('/', authAdmin, async (req, res) => {
   const db = await conectar();
+  let limite = parseInt(req.query.limit, 10);
+  if (!Number.isFinite(limite) || limite <= 0) limite = 60;
+  limite = Math.min(limite, 1000);
+
   const pedidos = await db
     .collection('pedidos')
     .find({})
     .sort({ criadoEm: -1 })
-    .limit(60)
+    .limit(limite)
     .toArray();
   res.json(pedidos);
 });
@@ -80,15 +120,23 @@ router.patch('/:id/status', authAdmin, async (req, res) => {
   res.json({ sucesso: true, status });
 });
 
+// No máximo 60 consultas de status por IP a cada 10 minutos
+const limiteConsulta = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Público - o cliente acompanha o próprio pedido pelo ID (link só ele tem)
-router.get('/:id', async (req, res) => {
+router.get('/:id', limiteConsulta, async (req, res) => {
   if (!ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ erro: 'ID inválido' });
   }
   const db = await conectar();
   const pedido = await db.collection('pedidos').findOne(
     { _id: new ObjectId(req.params.id) },
-    { projection: { itens: 1, total: 1, status: 1, criadoEm: 1 } }
+    { projection: { itens: 1, total: 1, status: 1, criadoEm: 1, observacoes: 1 } }
   );
   if (!pedido) {
     return res.status(404).json({ erro: 'Pedido não encontrado' });

@@ -72,8 +72,9 @@ export async function buscarResumoVendas(token) {
   return res.json();
 }
 
-export async function buscarPedidos(token) {
-  const res = await fetch(`${API_URL}/api/pedidos`, {
+export async function buscarPedidos(token, limite) {
+  const url = limite ? `${API_URL}/api/pedidos?limit=${limite}` : `${API_URL}/api/pedidos`;
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Erro ao buscar pedidos');

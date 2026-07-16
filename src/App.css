@@ -618,7 +618,8 @@
   margin-top: 1rem;
 }
 
-.dados-cliente input {
+.dados-cliente input,
+.dados-cliente textarea {
   border: 2px solid #eee0cb;
   background: var(--massa);
   border-radius: 10px;
@@ -626,9 +627,12 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--carvao);
+  font-family: inherit;
+  resize: none;
 }
 
-.dados-cliente input:focus {
+.dados-cliente input:focus,
+.dados-cliente textarea:focus {
   outline: 3px solid var(--queijo);
   outline-offset: 1px;
   border-color: var(--queijo);
@@ -817,6 +821,35 @@
 
 .avancar-btn:hover {
   background: var(--manjericao-escuro);
+}
+
+.exportar-btn {
+  width: 100%;
+  border: none;
+  background: var(--branco-muzzarela);
+  color: var(--molho-escuro);
+  font-weight: 800;
+  padding: 0.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--sombra);
+  border: 2px solid var(--queijo);
+}
+
+.exportar-btn:disabled {
+  opacity: 0.6;
+}
+
+.pedido-obs {
+  background: var(--massa);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--carvao);
+  margin: 0 0 0.6rem;
 }
 
 .ativar-som-btn {

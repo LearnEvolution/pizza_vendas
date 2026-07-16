@@ -42,6 +42,7 @@ export default function App() {
   const [aba, setAba] = useState("pizza");
   const [nomeCliente, setNomeCliente] = useState("");
   const [telefoneCliente, setTelefoneCliente] = useState("");
+  const [observacoes, setObservacoes] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erroPedido, setErroPedido] = useState("");
   const [pedidoFeitoId, setPedidoFeitoId] = useState("");
@@ -109,6 +110,7 @@ export default function App() {
         itens: cart.map((item) => ({ nome: item.name, preco: item.price, quantidade: item.quantity })),
         total,
         cliente: { nome: nomeCliente.trim(), telefone: telefoneCliente.trim() },
+        observacoes: observacoes.trim(),
       });
       idPedido = resultado._id;
       setPedidoFeitoId(idPedido);
@@ -130,6 +132,10 @@ export default function App() {
           `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
       )
       .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}${
+      observacoes.trim()
+        ? `%0A%0A📝%20Observação:%20${encodeURIComponent(observacoes.trim())}`
+        : ""
+    }${
       linkAcompanhamento
         ? `%0A%0A📍%20Acompanhe%20seu%20pedido:%20${encodeURIComponent(linkAcompanhamento)}`
         : ""
@@ -237,6 +243,13 @@ export default function App() {
                 placeholder="Seu telefone (com DDD)"
                 value={telefoneCliente}
                 onChange={(e) => setTelefoneCliente(e.target.value)}
+              />
+              <textarea
+                placeholder="Alguma observação? (ex: sem cebola, capricha na borda...)"
+                value={observacoes}
+                onChange={(e) => setObservacoes(e.target.value)}
+                maxLength={300}
+                rows={2}
               />
               {erroPedido && <p className="admin-erro" style={{ margin: '0.3rem 0 0' }}>{erroPedido}</p>}
             </div>
