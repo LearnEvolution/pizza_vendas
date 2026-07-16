@@ -58,10 +58,34 @@ export async function registrarPedido(pedido) {
   return res.json();
 }
 
+export async function buscarStatusPedido(id) {
+  const res = await fetch(`${API_URL}/api/pedidos/${id}`);
+  if (!res.ok) throw new Error('Pedido não encontrado');
+  return res.json();
+}
+
 export async function buscarResumoVendas(token) {
-  const res = await fetch(`${API_URL}/api/pedidos/resumo`, {
+  const res = await fetch(`${API_URL}/api/pedidos/resumo/dados`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Erro ao buscar resumo de vendas');
+  return res.json();
+}
+
+export async function buscarPedidos(token) {
+  const res = await fetch(`${API_URL}/api/pedidos`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Erro ao buscar pedidos');
+  return res.json();
+}
+
+export async function atualizarStatusPedido(token, id, status) {
+  const res = await fetch(`${API_URL}/api/pedidos/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error('Erro ao atualizar status');
   return res.json();
 }

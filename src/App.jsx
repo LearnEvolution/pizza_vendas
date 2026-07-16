@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import { buscarProdutos, registrarPedido } from "./api";
 import AdminPage from "./AdminPage";
+import PedidoStatus from "./PedidoStatus";
 
 const CORES_ACCENT = ["#ffb627", "#2f7a3c", "#e63946", "#ffd166"];
+const NUMERO_LOJA = "5581986776362"; // <-- troque aqui pelo número da loja (com DDI+DDD)
 
 function emojiDaPizza(nome = "") {
   const n = nome.toLowerCase();
@@ -38,6 +40,11 @@ export default function App() {
   const [carregando, setCarregando] = useState(true);
   const [rota, setRota] = useState(window.location.hash);
   const [aba, setAba] = useState("pizza");
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [telefoneCliente, setTelefoneCliente] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [erroPedido, setErroPedido] = useState("");
+  const [pedidoFeitoId, setPedidoFeitoId] = useState("");
 
   useEffect(() => {
     function aoMudarHash() {
@@ -56,6 +63,10 @@ export default function App() {
 
   if (rota === "#admin") {
     return <AdminPage />;
+  }
+
+  if (rota.startsWith("#pedido/")) {
+    return <PedidoStatus id={rota.replace("#pedido/", "")} />;
   }
 
   function addToCart(pizza) {
@@ -78,29 +89,41 @@ export default function App() {
     setCart(cart.filter((item) => item.id !== id));
   }
 
+  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const totalItens = cart.reduce((acc, item) => acc + item.quantity, 0);
+
   async function handleFinalizar() {
-    const linkWhats = `https://wa.me/5581986776362?text=Olá!%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
+    setErroPedido("");
+    if (!nomeCliente.trim() || !telefoneCliente.trim()) {
+      setErroPedido("Preenche seu nome e telefone pra gente confirmar o pedido 🙂");
+      return;
+    }
+
+    const linkWhats = `https://wa.me/${NUMERO_LOJA}?text=Olá!%20Meu%20nome%20é%20${encodeURIComponent(
+      nomeCliente
+    )}.%20Gostaria%20de%20fazer%20um%20pedido:%0A${cart
       .map(
         (item) =>
           `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
       )
       .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}`;
 
+    setEnviando(true);
     try {
-      await registrarPedido({
+      const resultado = await registrarPedido({
         itens: cart.map((item) => ({ nome: item.name, preco: item.price, quantidade: item.quantity })),
         total,
+        cliente: { nome: nomeCliente.trim(), telefone: telefoneCliente.trim() },
       });
+      setPedidoFeitoId(resultado._id);
     } catch (e) {
-      // Mesmo se o registro de venda falhar, não trava o pedido do cliente
       console.error("Não foi possível registrar a venda:", e);
+    } finally {
+      setEnviando(false);
     }
 
     window.open(linkWhats, "_blank");
   }
-
-  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const totalItens = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <div className="app-shell">
@@ -183,15 +206,42 @@ export default function App() {
             </div>
           )}
 
-          {total > 0 && (
+          {total > 0 && !pedidoFeitoId && (
+            <div className="dados-cliente">
+              <input
+                type="text"
+                placeholder="Seu nome"
+                value={nomeCliente}
+                onChange={(e) => setNomeCliente(e.target.value)}
+              />
+              <input
+                type="tel"
+                placeholder="Seu telefone (com DDD)"
+                value={telefoneCliente}
+                onChange={(e) => setTelefoneCliente(e.target.value)}
+              />
+              {erroPedido && <p className="admin-erro" style={{ margin: '0.3rem 0 0' }}>{erroPedido}</p>}
+            </div>
+          )}
+
+          {total > 0 && !pedidoFeitoId && (
             <div className="cart-bar">
               <div className="cart-bar-info">
                 <span className="cart-bar-count">{totalItens} {totalItens === 1 ? "item" : "itens"}</span>
                 <span className="cart-bar-total">R$ {total.toFixed(2)}</span>
               </div>
-              <button onClick={handleFinalizar} className="whatsapp-button">
-                📲 Finalizar
+              <button onClick={handleFinalizar} className="whatsapp-button" disabled={enviando}>
+                {enviando ? "Enviando..." : "📲 Finalizar"}
               </button>
+            </div>
+          )}
+
+          {pedidoFeitoId && (
+            <div className="pedido-confirmado">
+              <p>🎉 Pedido enviado! Acompanhe o preparo em tempo real:</p>
+              <a href={`#pedido/${pedidoFeitoId}`} className="whatsapp-button" style={{ display: 'inline-block', textDecoration: 'none' }}>
+                Acompanhar meu pedido →
+              </a>
             </div>
           )}
         </div>

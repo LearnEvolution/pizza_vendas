@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { login, buscarProdutos, criarProduto, editarProduto, excluirProduto } from './api';
 import AdminFinancas from './AdminFinancas';
+import AdminPedidos from './AdminPedidos';
 
 export default function AdminPage() {
   const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
@@ -110,7 +111,9 @@ export default function AdminPage() {
   return (
     <div className="admin-shell">
       <div className="admin-header">
-        <h1 className="admin-title">{tela === 'financas' ? '📊 Financeiro' : '🍕 Painel do dono'}</h1>
+        <h1 className="admin-title">
+          {tela === 'financas' ? '📊 Financeiro' : tela === 'pedidos' ? '📋 Pedidos' : '🍕 Painel do dono'}
+        </h1>
         <button className="logout-btn" onClick={handleLogout}>Sair</button>
       </div>
 
@@ -122,6 +125,12 @@ export default function AdminPage() {
           🍕 Cardápio
         </button>
         <button
+          className={`aba-btn ${tela === 'pedidos' ? 'aba-ativa' : ''}`}
+          onClick={() => setTela('pedidos')}
+        >
+          📋 Pedidos
+        </button>
+        <button
           className={`aba-btn ${tela === 'financas' ? 'aba-ativa' : ''}`}
           onClick={() => setTela('financas')}
         >
@@ -129,9 +138,9 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {tela === 'financas' ? (
-        <AdminFinancas token={token} />
-      ) : (
+      {tela === 'financas' && <AdminFinancas token={token} />}
+      {tela === 'pedidos' && <AdminPedidos token={token} />}
+      {tela === 'produtos' && (
         <>
           <div className="admin-card">
             <h2>Adicionar item</h2>

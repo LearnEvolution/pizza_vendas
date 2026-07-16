@@ -1,17 +1,24 @@
 const express = require('express');
+const { ObjectId } = require('mongodb');
 const { conectar } = require('../lib/db');
 const authAdmin = require('../middleware/authAdmin');
 
 const router = express.Router();
 
+const STATUS_VALIDOS = ['recebido', 'preparando', 'pronto', 'entregue'];
+const PROXIMO_STATUS = {
+  recebido: 'preparando',
+  preparando: 'pronto',
+  pronto: 'entregue',
+};
+
 // Público - registra um pedido no momento em que o cliente finaliza no WhatsApp
 router.post('/', async (req, res) => {
-  const { itens, total } = req.body;
+  const { itens, total, cliente } = req.body;
 
   if (!Array.isArray(itens) || itens.length === 0 || typeof total !== 'number' || total <= 0) {
     return res.status(400).json({ erro: 'Pedido inválido' });
   }
-
   const itensValidos = itens.every(
     (i) =>
       typeof i.nome === 'string' &&
@@ -24,18 +31,73 @@ router.post('/', async (req, res) => {
   if (!itensValidos) {
     return res.status(400).json({ erro: 'Itens do pedido inválidos' });
   }
+  if (
+    !cliente ||
+    typeof cliente.nome !== 'string' ||
+    !cliente.nome.trim() ||
+    typeof cliente.telefone !== 'string' ||
+    !cliente.telefone.trim()
+  ) {
+    return res.status(400).json({ erro: 'Nome e telefone do cliente são obrigatórios' });
+  }
 
   const db = await conectar();
   const resultado = await db.collection('pedidos').insertOne({
     itens,
     total,
+    cliente: { nome: cliente.nome.trim(), telefone: cliente.telefone.trim() },
+    status: 'recebido',
     criadoEm: new Date(),
   });
-  res.status(201).json({ _id: resultado.insertedId });
+  res.status(201).json({ _id: resultado.insertedId, status: 'recebido' });
+});
+
+// Protegido - lista os pedidos recentes pro painel do dono
+router.get('/', authAdmin, async (req, res) => {
+  const db = await conectar();
+  const pedidos = await db
+    .collection('pedidos')
+    .find({})
+    .sort({ criadoEm: -1 })
+    .limit(60)
+    .toArray();
+  res.json(pedidos);
+});
+
+// Protegido - avança o status de um pedido
+router.patch('/:id/status', authAdmin, async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ erro: 'ID inválido' });
+  }
+  const { status } = req.body;
+  if (!STATUS_VALIDOS.includes(status)) {
+    return res.status(400).json({ erro: 'Status inválido' });
+  }
+  const db = await conectar();
+  await db
+    .collection('pedidos')
+    .updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status } });
+  res.json({ sucesso: true, status });
+});
+
+// Público - o cliente acompanha o próprio pedido pelo ID (link só ele tem)
+router.get('/:id', async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ erro: 'ID inválido' });
+  }
+  const db = await conectar();
+  const pedido = await db.collection('pedidos').findOne(
+    { _id: new ObjectId(req.params.id) },
+    { projection: { itens: 1, total: 1, status: 1, criadoEm: 1 } }
+  );
+  if (!pedido) {
+    return res.status(404).json({ erro: 'Pedido não encontrado' });
+  }
+  res.json(pedido);
 });
 
 // Protegido - resumo de vendas pro painel financeiro do dono
-router.get('/resumo', authAdmin, async (req, res) => {
+router.get('/resumo/dados', authAdmin, async (req, res) => {
   const db = await conectar();
   const agora = new Date();
   const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
@@ -58,7 +120,6 @@ router.get('/resumo', authAdmin, async (req, res) => {
   const pedidosSemana = pedidos.filter((p) => new Date(p.criadoEm) >= seteDiasAtras);
   const pedidosMes = pedidos.filter((p) => new Date(p.criadoEm) >= inicioMes);
 
-  // Vendas por dia, últimos 7 dias (pro gráfico)
   const vendasPorDia = [];
   for (let i = 6; i >= 0; i--) {
     const dia = new Date(inicioHoje);
@@ -76,7 +137,6 @@ router.get('/resumo', authAdmin, async (req, res) => {
     });
   }
 
-  // Itens mais vendidos no mês
   const contagem = {};
   for (const pedido of pedidosMes) {
     for (const item of pedido.itens) {
