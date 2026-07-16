@@ -56,6 +56,20 @@ router.post('/', limitePedidos, async (req, res) => {
     observacoes = req.body.observacoes.trim();
   }
 
+  const pagamentoRecebido = req.body.pagamento || {};
+  const formasValidas = ['dinheiro', 'pix'];
+  if (!formasValidas.includes(pagamentoRecebido.forma)) {
+    return res.status(400).json({ erro: 'Forma de pagamento inválida' });
+  }
+  let trocoPara = '';
+  if (pagamentoRecebido.trocoPara !== undefined) {
+    if (typeof pagamentoRecebido.trocoPara !== 'string' || pagamentoRecebido.trocoPara.length > 20) {
+      return res.status(400).json({ erro: 'Valor de troco inválido' });
+    }
+    trocoPara = pagamentoRecebido.trocoPara.trim();
+  }
+  const pagamento = { forma: pagamentoRecebido.forma, trocoPara };
+
   // Importante: NUNCA confia no preço que vem do navegador do cliente.
   // Busca o preço real de cada item no cardápio atual e recalcula tudo aqui no servidor.
   const db = await conectar();
@@ -82,6 +96,7 @@ router.post('/', limitePedidos, async (req, res) => {
     total: totalReal,
     cliente: { nome: cliente.nome.trim(), telefone: cliente.telefone.trim() },
     observacoes,
+    pagamento,
     status: 'recebido',
     criadoEm: new Date(),
   });
@@ -136,7 +151,7 @@ router.get('/:id', limiteConsulta, async (req, res) => {
   const db = await conectar();
   const pedido = await db.collection('pedidos').findOne(
     { _id: new ObjectId(req.params.id) },
-    { projection: { itens: 1, total: 1, status: 1, criadoEm: 1, observacoes: 1 } }
+    { projection: { itens: 1, total: 1, status: 1, criadoEm: 1, observacoes: 1, pagamento: 1 } }
   );
   if (!pedido) {
     return res.status(404).json({ erro: 'Pedido não encontrado' });

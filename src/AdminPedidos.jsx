@@ -23,10 +23,16 @@ function escapeCSV(texto) {
 }
 
 function gerarCSV(pedidos) {
-  const cabecalho = ['Data', 'Hora', 'Cliente', 'Telefone', 'Itens', 'Total', 'Status', 'Observações'];
+  const cabecalho = ['Data', 'Hora', 'Cliente', 'Telefone', 'Itens', 'Total', 'Pagamento', 'Status', 'Observações'];
   const linhas = pedidos.map((p) => {
     const data = new Date(p.criadoEm);
     const itensTexto = p.itens.map((i) => `${i.quantidade}x ${i.nome}`).join(' | ');
+    const pagamentoTexto =
+      p.pagamento?.forma === 'dinheiro'
+        ? `Dinheiro${p.pagamento?.trocoPara ? ` (troco p/ R$${p.pagamento.trocoPara})` : ''}`
+        : p.pagamento?.forma === 'pix'
+        ? 'Pix'
+        : '—';
     return [
       data.toLocaleDateString('pt-BR'),
       data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -34,6 +40,7 @@ function gerarCSV(pedidos) {
       escapeCSV(p.cliente?.telefone),
       escapeCSV(itensTexto),
       p.total.toFixed(2).replace('.', ','),
+      escapeCSV(pagamentoTexto),
       LABEL[p.status] || p.status,
       escapeCSV(p.observacoes),
     ].join(';');
@@ -137,6 +144,14 @@ export default function AdminPedidos({ token }) {
 
           {pedido.observacoes && (
             <p className="pedido-obs">📝 {pedido.observacoes}</p>
+          )}
+
+          {pedido.pagamento?.forma && (
+            <p className="pedido-obs">
+              {pedido.pagamento.forma === 'pix'
+                ? '💳 Pagamento: Pix'
+                : `💵 Pagamento: Dinheiro${pedido.pagamento.trocoPara ? ` (troco p/ R$${pedido.pagamento.trocoPara})` : ''}`}
+            </p>
           )}
 
           <div className="pedido-rodape">

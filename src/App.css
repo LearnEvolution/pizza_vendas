@@ -652,6 +652,99 @@
   margin-bottom: 0.7rem;
 }
 
+.pagamento-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--carvao);
+  margin: 0.3rem 0 0.2rem;
+}
+
+.pagamento-opcoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagamento-btn {
+  flex: 1;
+  border: 2px solid #eee0cb;
+  background: var(--branco-muzzarela);
+  color: var(--carvao);
+  font-weight: 800;
+  font-size: 0.88rem;
+  padding: 0.6rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pagamento-ativo {
+  background: var(--manjericao);
+  border-color: var(--manjericao);
+  color: var(--branco-muzzarela);
+}
+
+.pagamento-detalhe {
+  background: var(--massa);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.pagamento-detalhe p {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--carvao);
+}
+
+.pagamento-detalhe input {
+  width: 100%;
+  border: 2px solid #eee0cb;
+  background: var(--branco-muzzarela);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--carvao);
+}
+
+.pix-chave-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: var(--branco-muzzarela);
+  border: 2px dashed var(--manjericao);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+}
+
+.pix-chave-valor {
+  display: block;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--carvao);
+  word-break: break-all;
+}
+
+.pix-chave-nome {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #8a7a6a;
+}
+
+.pix-copiar-btn {
+  flex-shrink: 0;
+  border: none;
+  background: var(--manjericao);
+  color: var(--branco-muzzarela);
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 /* ---------- TRILHA DE STATUS (cliente) ---------- */
 .trilha-status {
   display: flex;

@@ -6,6 +6,8 @@ import PedidoStatus from "./PedidoStatus";
 
 const CORES_ACCENT = ["#ffb627", "#2f7a3c", "#e63946", "#ffd166"];
 const NUMERO_LOJA = "5581986776362"; // <-- número da loja (com DDI+DDD)
+const PIX_CHAVE = "meupixteste@.com"; // <-- troque pela sua chave Pix real
+const PIX_NOME = "Eupix"; // <-- nome cadastrado na chave Pix
 
 function emojiDaPizza(nome = "") {
   const n = nome.toLowerCase();
@@ -43,6 +45,9 @@ export default function App() {
   const [nomeCliente, setNomeCliente] = useState("");
   const [telefoneCliente, setTelefoneCliente] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState("");
+  const [trocoPara, setTrocoPara] = useState("");
+  const [pixCopiado, setPixCopiado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erroPedido, setErroPedido] = useState("");
   const [pedidoFeitoId, setPedidoFeitoId] = useState("");
@@ -99,6 +104,10 @@ export default function App() {
       setErroPedido("Preenche seu nome e telefone pra gente confirmar o pedido 🙂");
       return;
     }
+    if (!formaPagamento) {
+      setErroPedido("Escolhe a forma de pagamento (Dinheiro ou Pix) 🙂");
+      return;
+    }
 
     // Abre a aba em branco JÁ no clique (senão o navegador bloqueia depois do await)
     const novaAba = window.open("", "_blank");
@@ -111,6 +120,10 @@ export default function App() {
         total,
         cliente: { nome: nomeCliente.trim(), telefone: telefoneCliente.trim() },
         observacoes: observacoes.trim(),
+        pagamento: {
+          forma: formaPagamento,
+          trocoPara: formaPagamento === "dinheiro" && trocoPara.trim() ? trocoPara.trim() : "",
+        },
       });
       idPedido = resultado._id;
       setPedidoFeitoId(idPedido);
@@ -132,6 +145,12 @@ export default function App() {
           `🍕 ${item.name} - ${item.quantity}un - R$${(item.price * item.quantity).toFixed(2)}`
       )
       .join("%0A")}%0A%0ATotal: R$${total.toFixed(2)}${
+      formaPagamento === "dinheiro"
+        ? `%0A💵%20Pagamento:%20Dinheiro${trocoPara.trim() ? `%20(troco%20para%20R$${encodeURIComponent(trocoPara.trim())})` : ""}`
+        : formaPagamento === "pix"
+        ? `%0A💳%20Pagamento:%20Pix%20(chave%20${encodeURIComponent(PIX_CHAVE)}%20-%20${encodeURIComponent(PIX_NOME)})`
+        : ""
+    }${
       observacoes.trim()
         ? `%0A%0A📝%20Observação:%20${encodeURIComponent(observacoes.trim())}`
         : ""
@@ -251,6 +270,62 @@ export default function App() {
                 maxLength={300}
                 rows={2}
               />
+
+              <p className="pagamento-label">Forma de pagamento</p>
+              <div className="pagamento-opcoes">
+                <button
+                  type="button"
+                  className={`pagamento-btn ${formaPagamento === "dinheiro" ? "pagamento-ativo" : ""}`}
+                  onClick={() => setFormaPagamento("dinheiro")}
+                >
+                  💵 Dinheiro
+                </button>
+                <button
+                  type="button"
+                  className={`pagamento-btn ${formaPagamento === "pix" ? "pagamento-ativo" : ""}`}
+                  onClick={() => {
+                    setFormaPagamento("pix");
+                    setPixCopiado(false);
+                  }}
+                >
+                  💳 Pix
+                </button>
+              </div>
+
+              {formaPagamento === "dinheiro" && (
+                <div className="pagamento-detalhe">
+                  <p>✅ Combinado! O pagamento será em dinheiro na entrega/retirada.</p>
+                  <input
+                    type="text"
+                    placeholder="Troco para quanto? (opcional)"
+                    value={trocoPara}
+                    onChange={(e) => setTrocoPara(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {formaPagamento === "pix" && (
+                <div className="pagamento-detalhe">
+                  <p>Pague direto no app do seu banco com a chave abaixo, depois é só enviar o pedido:</p>
+                  <div className="pix-chave-box">
+                    <div>
+                      <span className="pix-chave-valor">{PIX_CHAVE}</span>
+                      <span className="pix-chave-nome">{PIX_NOME}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="pix-copiar-btn"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(PIX_CHAVE);
+                        setPixCopiado(true);
+                      }}
+                    >
+                      {pixCopiado ? "Copiado ✓" : "Copiar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {erroPedido && <p className="admin-erro" style={{ margin: '0.3rem 0 0' }}>{erroPedido}</p>}
             </div>
           )}
