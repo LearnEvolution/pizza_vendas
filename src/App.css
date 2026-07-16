@@ -818,3 +818,23 @@
 .avancar-btn:hover {
   background: var(--manjericao-escuro);
 }
+
+.ativar-som-btn {
+  width: 100%;
+  border: none;
+  background: var(--queijo);
+  color: var(--carvao);
+  font-weight: 800;
+  padding: 0.85rem;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  margin-bottom: 1.2rem;
+  box-shadow: var(--sombra);
+  animation: pulsar 1.5s ease-in-out infinite;
+}
+
+@keyframes pulsar {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}

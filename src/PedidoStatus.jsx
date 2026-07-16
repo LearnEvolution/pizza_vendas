@@ -11,15 +11,43 @@ const ETAPAS = [
 export default function PedidoStatus({ id }) {
   const [pedido, setPedido] = useState(null);
   const [erro, setErro] = useState('');
+  const [somAtivado, setSomAtivado] = useState(false);
   const statusAnterior = useRef(null);
   const audioCtxRef = useRef(null);
 
-  function tocarAlerta() {
+  function ativarSom() {
     try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
       if (!audioCtxRef.current) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
         audioCtxRef.current = new Ctx();
       }
+      audioCtxRef.current.resume();
+      setSomAtivado(true);
+      // toca um bipe curto de confirmação, já usando o áudio liberado
+      const ctx = audioCtxRef.current;
+      const agora = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const ganho = ctx.createGain();
+      osc.connect(ganho);
+      ganho.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1000, agora);
+      ganho.gain.setValueAtTime(0.0001, agora);
+      ganho.gain.exponentialRampToValueAtTime(0.3, agora + 0.03);
+      ganho.gain.exponentialRampToValueAtTime(0.0001, agora + 0.25);
+      osc.start(agora);
+      osc.stop(agora + 0.27);
+    } catch (e) {
+      setSomAtivado(true);
+    }
+  }
+
+  function tocarAlerta() {
+    if (!somAtivado || !audioCtxRef.current) {
+      if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250, 120, 250, 120, 250]);
+      return;
+    }
+    try {
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') ctx.resume();
 
@@ -110,6 +138,12 @@ export default function PedidoStatus({ id }) {
       </header>
 
       <section className="menu-section">
+        {!somAtivado && (
+          <button className="ativar-som-btn" onClick={ativarSom}>
+            🔔 Toque aqui para ativar o alerta sonoro
+          </button>
+        )}
+
         <div className="trilha-status">
           {ETAPAS.map((etapa, i) => (
             <div key={etapa.chave} className={`trilha-etapa ${i <= indiceAtual ? 'trilha-ativa' : ''}`}>
@@ -137,7 +171,9 @@ export default function PedidoStatus({ id }) {
         </div>
 
         <p style={{ textAlign: 'center', color: '#8a7a6a', fontSize: '0.8rem', marginTop: '1rem' }}>
-          🔔 Deixa essa página aberta — ela avisa com som quando o status mudar
+          {somAtivado
+            ? '🔔 Som ativado — deixa essa página aberta pra não perder o aviso'
+            : 'Ative o som acima pra não perder quando seu pedido avançar 👆'}
         </p>
       </section>
 
