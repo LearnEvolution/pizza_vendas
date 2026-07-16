@@ -8,31 +8,45 @@ const ETAPAS = [
   { chave: 'entregue', label: 'Entregue', emoji: '🎉' },
 ];
 
-function tocarAlerta() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const ganho = ctx.createGain();
-    osc.connect(ganho);
-    ganho.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(1175, ctx.currentTime + 0.15);
-    ganho.gain.setValueAtTime(0.18, ctx.currentTime);
-    ganho.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.6);
-  } catch (e) {
-    // navegador bloqueou áudio automático, sem problema
-  }
-  if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-}
-
 export default function PedidoStatus({ id }) {
   const [pedido, setPedido] = useState(null);
   const [erro, setErro] = useState('');
   const statusAnterior = useRef(null);
+  const audioCtxRef = useRef(null);
+
+  function tocarAlerta() {
+    try {
+      if (!audioCtxRef.current) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtxRef.current = new Ctx();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const inicio = ctx.currentTime;
+      const numeroDeBips = 5;
+      const espacamento = 0.6; // segundos entre cada bip
+
+      for (let i = 0; i < numeroDeBips; i++) {
+        const tInicio = inicio + i * espacamento;
+        const osc = ctx.createOscillator();
+        const ganho = ctx.createGain();
+        osc.connect(ganho);
+        ganho.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, tInicio);
+        osc.frequency.setValueAtTime(1175, tInicio + 0.15);
+        ganho.gain.setValueAtTime(0.0001, tInicio);
+        ganho.gain.exponentialRampToValueAtTime(0.4, tInicio + 0.03);
+        ganho.gain.exponentialRampToValueAtTime(0.0001, tInicio + 0.32);
+        osc.start(tInicio);
+        osc.stop(tInicio + 0.34);
+      }
+    } catch (e) {
+      // navegador bloqueou áudio automático, sem problema
+    }
+    if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250, 120, 250, 120, 250]);
+  }
 
   useEffect(() => {
     let ativo = true;
@@ -58,6 +72,7 @@ export default function PedidoStatus({ id }) {
       ativo = false;
       clearInterval(intervalo);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (erro) {
