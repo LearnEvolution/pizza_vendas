@@ -43,7 +43,7 @@ export default function PedidoStatus({ id }) {
   }
 
   function tocarAlerta() {
-    if (!somAtivado || !audioCtxRef.current) {
+    if (!audioCtxRef.current) {
       if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250, 120, 250, 120, 250]);
       return;
     }
