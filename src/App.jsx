@@ -213,7 +213,13 @@ export default function App() {
                   style={{ "--accent": CORES_ACCENT[i % CORES_ACCENT.length] }}
                 />
                 <div className="pizza-card-body">
-                  <span className="pizza-emoji">{emojiDoProduto(pizza)}</span>
+                  {pizza.imagem ? (
+                    <div className="pizza-foto-wrap">
+                      <img src={pizza.imagem} alt={pizza.nome} className="pizza-foto" />
+                    </div>
+                  ) : (
+                    <span className="pizza-emoji">{emojiDoProduto(pizza)}</span>
+                  )}
                   <h3 className="pizza-name">{pizza.nome}</h3>
                   <span className="pizza-price">R$ {pizza.preco.toFixed(2)}</span>
                   <button className="add-button" onClick={() => addToCart(pizza)}>

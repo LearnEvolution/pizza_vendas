@@ -153,6 +153,29 @@
   line-height: 1;
 }
 
+.pizza-foto-wrap {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.pizza-foto {
+  max-width: 90%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(43, 33, 24, 0.25));
+  animation: balancar-foto 4.5s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+@keyframes balancar-foto {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
 .pizza-name {
   font-family: "Baloo 2", sans-serif;
   font-weight: 700;
@@ -458,11 +481,26 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 0;
-  border-bottom: 1px dashed #e9dfce;
 }
 
-.admin-produto-row:last-child {
+.admin-produto-bloco {
+  border-bottom: 1px dashed #e9dfce;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.admin-produto-bloco:last-child {
   border-bottom: none;
+}
+
+.admin-produto-imagem {
+  width: 100%;
+  border: 2px solid #eee0cb;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  color: var(--carvao);
+  background: var(--massa);
 }
 
 .admin-produto-nome {

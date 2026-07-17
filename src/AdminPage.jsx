@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [novoNome, setNovoNome] = useState('');
   const [novoPreco, setNovoPreco] = useState('');
   const [novaCategoria, setNovaCategoria] = useState('pizza');
+  const [novaImagem, setNovaImagem] = useState('');
   const [tela, setTela] = useState('produtos');
 
   useEffect(() => {
@@ -48,9 +49,19 @@ export default function AdminPage() {
     e.preventDefault();
     if (!novoNome || !novoPreco) return;
     try {
-      await criarProduto(token, { nome: novoNome, preco: novoPreco, categoria: novaCategoria });
+      await criarProduto(token, { nome: novoNome, preco: novoPreco, categoria: novaCategoria, imagem: novaImagem });
       setNovoNome('');
       setNovoPreco('');
+      setNovaImagem('');
+      carregarProdutos();
+    } catch (e) {
+      setErro(e.message);
+    }
+  }
+
+  async function handleEditarImagem(produto, novaUrl) {
+    try {
+      await editarProduto(token, produto._id, { imagem: novaUrl });
       carregarProdutos();
     } catch (e) {
       setErro(e.message);
@@ -162,6 +173,12 @@ export default function AdminPage() {
                 value={novoPreco}
                 onChange={(e) => setNovoPreco(e.target.value)}
               />
+              <input
+                type="text"
+                placeholder="Link da foto (opcional, https://...)"
+                value={novaImagem}
+                onChange={(e) => setNovaImagem(e.target.value)}
+              />
               <button type="submit">Adicionar ➕</button>
             </form>
           </div>
@@ -174,16 +191,25 @@ export default function AdminPage() {
             {produtos
               .filter((p) => (p.categoria || 'pizza') === 'pizza')
               .map((p) => (
-                <div key={p._id} className="admin-produto-row">
-                  <span className="admin-produto-nome">{p.nome}</span>
+                <div key={p._id} className="admin-produto-bloco">
+                  <div className="admin-produto-row">
+                    <span className="admin-produto-nome">{p.nome}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="admin-produto-preco"
+                      defaultValue={p.preco}
+                      onBlur={(e) => handleEditarPreco(p, e.target.value)}
+                    />
+                    <button className="remove-btn" onClick={() => handleExcluir(p._id)} aria-label={`Excluir ${p.nome}`}>×</button>
+                  </div>
                   <input
-                    type="number"
-                    step="0.01"
-                    className="admin-produto-preco"
-                    defaultValue={p.preco}
-                    onBlur={(e) => handleEditarPreco(p, e.target.value)}
+                    type="text"
+                    className="admin-produto-imagem"
+                    placeholder="Link da foto (https://...)"
+                    defaultValue={p.imagem || ''}
+                    onBlur={(e) => handleEditarImagem(p, e.target.value)}
                   />
-                  <button className="remove-btn" onClick={() => handleExcluir(p._id)} aria-label={`Excluir ${p.nome}`}>×</button>
                 </div>
               ))}
           </div>
@@ -196,16 +222,25 @@ export default function AdminPage() {
             {produtos
               .filter((p) => p.categoria === 'bebida')
               .map((p) => (
-                <div key={p._id} className="admin-produto-row">
-                  <span className="admin-produto-nome">{p.nome}</span>
+                <div key={p._id} className="admin-produto-bloco">
+                  <div className="admin-produto-row">
+                    <span className="admin-produto-nome">{p.nome}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="admin-produto-preco"
+                      defaultValue={p.preco}
+                      onBlur={(e) => handleEditarPreco(p, e.target.value)}
+                    />
+                    <button className="remove-btn" onClick={() => handleExcluir(p._id)} aria-label={`Excluir ${p.nome}`}>×</button>
+                  </div>
                   <input
-                    type="number"
-                    step="0.01"
-                    className="admin-produto-preco"
-                    defaultValue={p.preco}
-                    onBlur={(e) => handleEditarPreco(p, e.target.value)}
+                    type="text"
+                    className="admin-produto-imagem"
+                    placeholder="Link da foto (https://...)"
+                    defaultValue={p.imagem || ''}
+                    onBlur={(e) => handleEditarImagem(p, e.target.value)}
                   />
-                  <button className="remove-btn" onClick={() => handleExcluir(p._id)} aria-label={`Excluir ${p.nome}`}>×</button>
                 </div>
               ))}
             {erro && <p className="admin-erro">{erro}</p>}
