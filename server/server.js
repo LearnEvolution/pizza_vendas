@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const produtosRoutes = require('./routes/produtos');
 const authRoutes = require('./routes/auth');
 const pedidosRoutes = require('./routes/pedidos');
+const configuracoesRoutes = require('./routes/configuracoes');
 
 const app = express();
 app.use(helmet());
@@ -21,6 +22,7 @@ app.use(express.json({ limit: '100kb' }));
 app.use('/api/produtos', produtosRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/configuracoes', configuracoesRoutes);
 
 app.get('/', (req, res) => res.send('API Pizza Vendas rodando'));
 

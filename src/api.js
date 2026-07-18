@@ -90,3 +90,19 @@ export async function atualizarStatusPedido(token, id, status) {
   if (!res.ok) throw new Error('Erro ao atualizar status');
   return res.json();
 }
+
+export async function buscarConfiguracoes() {
+  const res = await fetch(`${API_URL}/api/configuracoes`);
+  if (!res.ok) throw new Error('Erro ao buscar configurações');
+  return res.json();
+}
+
+export async function atualizarConfiguracoes(token, dados) {
+  const res = await fetch(`${API_URL}/api/configuracoes`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(dados),
+  });
+  if (!res.ok) throw new Error('Erro ao salvar configurações');
+  return res.json();
+}

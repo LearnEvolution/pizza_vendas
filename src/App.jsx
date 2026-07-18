@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import { buscarProdutos, registrarPedido } from "./api";
+import { buscarProdutos, registrarPedido, buscarConfiguracoes } from "./api";
 import AdminPage from "./AdminPage";
 import PedidoStatus from "./PedidoStatus";
 
@@ -8,6 +8,7 @@ const CORES_ACCENT = ["#ffb627", "#2f7a3c", "#e63946", "#ffd166"];
 const NUMERO_LOJA = "5581986776362"; // <-- número da loja (com DDI+DDD)
 const PIX_CHAVE = "meupixteste@.com"; // <-- troque pela sua chave Pix real
 const PIX_NOME = "Eupix"; // <-- nome cadastrado na chave Pix
+const LOGO_URL = "/logo-king-pizzas.png"; // logo já embutida no projeto
 
 function emojiDaPizza(nome = "") {
   const n = nome.toLowerCase();
@@ -48,6 +49,7 @@ export default function App() {
   const [formaPagamento, setFormaPagamento] = useState("");
   const [trocoPara, setTrocoPara] = useState("");
   const [pixCopiado, setPixCopiado] = useState(false);
+  const [promocao, setPromocao] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [erroPedido, setErroPedido] = useState("");
   const [pedidoFeitoId, setPedidoFeitoId] = useState("");
@@ -65,6 +67,9 @@ export default function App() {
       .then(setPizzas)
       .catch(() => setPizzas([]))
       .finally(() => setCarregando(false));
+    buscarConfiguracoes()
+      .then(setPromocao)
+      .catch(() => setPromocao(null));
   }, []);
 
   if (rota === "#admin") {
@@ -172,8 +177,15 @@ export default function App() {
     <div className="app-shell">
       <header className="hero">
         <span className="hero-eyebrow">Feita na hora 🔥</span>
-        <h1 className="hero-title">🍕 King Pizzas Original</h1>
+        {LOGO_URL ? (
+          <img src={LOGO_URL} alt="King Pizzas Original" className="hero-logo" />
+        ) : (
+          <h1 className="hero-title">🍕 King Pizzas Original</h1>
+        )}
         <p className="hero-subtitle">Massa fininha, borda recheada e entrega rapidinha</p>
+        {promocao?.promocaoAtiva && promocao.promocao && (
+          <div className="promo-banner">🎉 {promocao.promocao}</div>
+        )}
         <div className="crust-edge" />
       </header>
 
